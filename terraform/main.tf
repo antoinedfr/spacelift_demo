@@ -341,3 +341,12 @@ resource "aws_route" "web_to_azure" {
   destination_cidr_block = "192.168.2.0/24"
   gateway_id             = aws_vpn_gateway.vpn_gw.id
 }
+resource "aws_route_table_association" "app_rta" {
+  subnet_id      = aws_subnet.app_subnet.id
+  route_table_id = aws_route_table.three_tier_rt.id
+}
+
+resource "aws_route_table_association" "db_rta" {
+  subnet_id      = aws_subnet.db_subnet.id
+  route_table_id = aws_route_table.three_tier_rt.id
+}
