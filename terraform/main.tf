@@ -6,8 +6,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-provider "random" {}
-
 ########################
 # SSH Keys Per Tier
 ########################
@@ -280,12 +278,6 @@ resource "aws_instance" "db_instance" {
 # VPN IPSec to Azure
 ########################
 
-resource "random_password" "ipsec_psk" {
-  length              = 32
-  special             = false
-  override_characters = "Site@ws@zure10"
-}
-
 resource "aws_customer_gateway" "azure" {
   bgp_asn    = 65000
   ip_address = "4.246.147.155"
@@ -310,7 +302,7 @@ resource "aws_vpn_connection" "azure_vpn" {
   type                    = "ipsec.1"
   static_routes_only      = true
 
-  tunnel1_preshared_key   = random_password.ipsec_psk.result
+  tunnel1_preshared_key   = "Projet_AWAZ10"
   tunnel1_inside_cidr     = "169.254.21.0/30"
 
   tags = {
