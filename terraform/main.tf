@@ -312,11 +312,11 @@ resource "aws_vpn_connection" "azure_vpn" {
 
 resource "aws_vpn_connection_route" "route_to_azure" {
   vpn_connection_id      = aws_vpn_connection.azure_vpn.id
-  destination_cidr_block = "192.168.1.0/24"
+  destination_cidr_block = "192.168.2.0/24"
 }
 
 resource "aws_route" "web_to_azure" {
   route_table_id         = aws_route_table.three_tier_rt.id
-  destination_cidr_block = "192.168.1.0/24"
+  destination_cidr_block = "192.168.2.0/24"
   gateway_id             = aws_vpn_gateway.vpn_gw.id
 }
