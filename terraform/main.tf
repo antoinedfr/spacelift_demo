@@ -1,3 +1,4 @@
+
 terraform {
   required_version = ">= 1.0"
 }
@@ -147,10 +148,11 @@ resource "aws_route_table_association" "web_rta" {
 
 resource "aws_security_group" "web_sg" {
   name        = "web-sg"
-  description = "Allow HTTP and SSH to web tier"
+  description = "Allow HTTP from internet and SSH from Azure"
   vpc_id      = aws_vpc.three_tier_vpc.id
 
   ingress {
+    description = "HTTP from anywhere"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -158,10 +160,11 @@ resource "aws_security_group" "web_sg" {
   }
 
   ingress {
+    description = "SSH from Azure over VPN"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["192.168.2.0/24"]
   }
 
   egress {
@@ -174,14 +177,23 @@ resource "aws_security_group" "web_sg" {
 
 resource "aws_security_group" "app_sg" {
   name        = "app-sg"
-  description = "Allow traffic from web tier to app tier"
+  description = "Allow App tier access from Web tier and SSH from Azure"
   vpc_id      = aws_vpc.three_tier_vpc.id
 
   ingress {
+    description = "App traffic from Web tier"
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
     security_groups = [aws_security_group.web_sg.id]
+  }
+
+  ingress {
+    description = "SSH from Azure over VPN"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["192.168.2.0/24"]
   }
 
   egress {
@@ -194,14 +206,23 @@ resource "aws_security_group" "app_sg" {
 
 resource "aws_security_group" "db_sg" {
   name        = "db-sg"
-  description = "Allow MySQL from app tier"
+  description = "Allow MySQL from App tier and SSH from Azure"
   vpc_id      = aws_vpc.three_tier_vpc.id
 
   ingress {
+    description = "MySQL from App tier"
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
     security_groups = [aws_security_group.app_sg.id]
+  }
+
+  ingress {
+    description = "SSH from Azure over VPN"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["192.168.2.0/24"]
   }
 
   egress {
