@@ -142,6 +142,16 @@ resource "aws_route_table_association" "web_rta" {
   route_table_id = aws_route_table.three_tier_rt.id
 }
 
+resource "aws_route_table_association" "app_rta" {
+  subnet_id      = aws_subnet.app_subnet.id
+  route_table_id = aws_route_table.three_tier_rt.id
+}
+
+resource "aws_route_table_association" "db_rta" {
+  subnet_id      = aws_subnet.db_subnet.id
+  route_table_id = aws_route_table.three_tier_rt.id
+}
+
 ########################
 # Security Groups
 ########################
@@ -267,7 +277,8 @@ resource "aws_instance" "app_instance" {
     #!/bin/bash
     apt-get update
     apt-get install -y python3-flask
-    echo "from flask import Flask; app = Flask(__name__); @app.route('/')\ndef hello(): return 'Hello from App tier'; app.run(host='0.0.0.0', port=8080)" > /home/ubuntu/app.py
+    echo "from flask import Flask; app = Flask(__name__); @app.route('/')
+def hello(): return 'Hello from App tier'; app.run(host='0.0.0.0', port=8080)" > /home/ubuntu/app.py
     nohup python3 /home/ubuntu/app.py &
   EOF
 
@@ -336,17 +347,8 @@ resource "aws_vpn_connection_route" "route_to_azure" {
   destination_cidr_block = "192.168.2.0/24"
 }
 
-resource "aws_route" "web_to_azure" {
+resource "aws_route" "route_to_azure_vpn" {
   route_table_id         = aws_route_table.three_tier_rt.id
   destination_cidr_block = "192.168.2.0/24"
   gateway_id             = aws_vpn_gateway.vpn_gw.id
-}
-resource "aws_route_table_association" "app_rta" {
-  subnet_id      = aws_subnet.app_subnet.id
-  route_table_id = aws_route_table.three_tier_rt.id
-}
-
-resource "aws_route_table_association" "db_rta" {
-  subnet_id      = aws_subnet.db_subnet.id
-  route_table_id = aws_route_table.three_tier_rt.id
 }
