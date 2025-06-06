@@ -283,7 +283,7 @@ resource "aws_instance" "db_instance" {
 resource "random_password" "ipsec_psk" {
   length              = 32
   special             = false
-  override_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
+  override_characters = "Site@ws@zure10"
 }
 
 resource "aws_customer_gateway" "azure" {
