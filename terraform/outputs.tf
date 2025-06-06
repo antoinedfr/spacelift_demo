@@ -14,7 +14,7 @@ output "db_private_key_ssm_name" {
   value       = aws_ssm_parameter.db_private_key.name
 }
 
-# Public and private IPs for each tier
+# Public and private IPs for each EC2 instance
 output "web_public_ip" {
   description = "Public IP of the Web (frontend) instance"
   value       = aws_instance.web_instance.public_ip
@@ -29,8 +29,10 @@ output "db_private_ip" {
   description = "Private IP of the DB instance"
   value       = aws_instance.db_instance.private_ip
 }
+
+# IPSec Pre-shared Key (PSK) for Azure VPN Gateway
 output "vpn_psk_for_azure" {
-  value       = random_string.ipsec_psk.result
-  description = "Pre-shared key to config in Azure VPN"
+  description = "Pre-shared key to configure in Azure VPN Gateway"
+  value       = random_password.ipsec_psk.result
   sensitive   = true
 }
