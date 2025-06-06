@@ -280,9 +280,10 @@ resource "aws_instance" "db_instance" {
 # VPN IPSec to Azure
 ########################
 
-resource "random_string" "ipsec_psk" {
-  length  = 32
-  special = false
+resource "random_password" "ipsec_psk" {
+  length              = 32
+  special             = false
+  override_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
 }
 
 resource "aws_customer_gateway" "azure" {
@@ -304,13 +305,13 @@ resource "aws_vpn_gateway" "vpn_gw" {
 }
 
 resource "aws_vpn_connection" "azure_vpn" {
-  customer_gateway_id = aws_customer_gateway.azure.id
-  vpn_gateway_id      = aws_vpn_gateway.vpn_gw.id
-  type                = "ipsec.1"
-  static_routes_only  = true
+  customer_gateway_id     = aws_customer_gateway.azure.id
+  vpn_gateway_id          = aws_vpn_gateway.vpn_gw.id
+  type                    = "ipsec.1"
+  static_routes_only      = true
 
-  tunnel1_preshared_key = random_string.ipsec_psk.result
-  tunnel1_inside_cidr   = "169.254.21.0/30"
+  tunnel1_preshared_key   = random_password.ipsec_psk.result
+  tunnel1_inside_cidr     = "169.254.21.0/30"
 
   tags = {
     Name = "vpn-aws-to-azure"
