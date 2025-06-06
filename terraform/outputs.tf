@@ -29,3 +29,8 @@ output "db_private_ip" {
   description = "Private IP of the DB instance"
   value       = aws_instance.db_instance.private_ip
 }
+output "vpn_psk_for_azure" {
+  value       = random_string.ipsec_psk.result
+  description = "Pre-shared key to config in Azure VPN"
+  sensitive   = true
+}
