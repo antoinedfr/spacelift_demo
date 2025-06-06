@@ -1,4 +1,4 @@
-# SSM Parameter names for each private key
+# SSM Parameter names for each tier's SSH private key
 output "web_private_key_ssm_name" {
   description = "SSM parameter name for Web tier private key"
   value       = aws_ssm_parameter.web_private_key.name
@@ -14,7 +14,7 @@ output "db_private_key_ssm_name" {
   value       = aws_ssm_parameter.db_private_key.name
 }
 
-# Public and Private IPs of EC2 Instances
+# Public and private IPs for each tier
 output "web_public_ip" {
   description = "Public IP of the Web (frontend) instance"
   value       = aws_instance.web_instance.public_ip
