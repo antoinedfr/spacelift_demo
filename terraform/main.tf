@@ -3,8 +3,10 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
+
+provider "random" {}
 
 ########################
 # SSH Keys Per Tier
@@ -105,7 +107,6 @@ resource "aws_route_table" "three_tier_rt" {
   }
 }
 
-# Subnets
 resource "aws_subnet" "web_subnet" {
   vpc_id                  = aws_vpc.three_tier_vpc.id
   cidr_block              = "10.0.1.0/24"
@@ -118,9 +119,9 @@ resource "aws_subnet" "web_subnet" {
 }
 
 resource "aws_subnet" "app_subnet" {
-  vpc_id                  = aws_vpc.three_tier_vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1a"
+  vpc_id            = aws_vpc.three_tier_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "app-subnet"
@@ -128,9 +129,9 @@ resource "aws_subnet" "app_subnet" {
 }
 
 resource "aws_subnet" "db_subnet" {
-  vpc_id                  = aws_vpc.three_tier_vpc.id
-  cidr_block              = "10.0.3.0/24"
-  availability_zone       = "us-east-1a"
+  vpc_id            = aws_vpc.three_tier_vpc.id
+  cidr_block        = "10.0.3.0/24"
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "db-subnet"
@@ -275,3 +276,54 @@ resource "aws_instance" "db_instance" {
   }
 }
 
+########################
+# VPN IPSec to Azure
+########################
+
+resource "random_string" "ipsec_psk" {
+  length  = 32
+  special = false
+}
+
+resource "aws_customer_gateway" "azure" {
+  bgp_asn    = 65000
+  ip_address = "4.246.147.155"
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "azure-cgw"
+  }
+}
+
+resource "aws_vpn_gateway" "vpn_gw" {
+  vpc_id = aws_vpc.three_tier_vpc.id
+
+  tags = {
+    Name = "aws-vpn-gw"
+  }
+}
+
+resource "aws_vpn_connection" "azure_vpn" {
+  customer_gateway_id = aws_customer_gateway.azure.id
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gw.id
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  tunnel1_preshared_key = random_string.ipsec_psk.result
+  tunnel1_inside_cidr   = "169.254.21.0/30"
+
+  tags = {
+    Name = "vpn-aws-to-azure"
+  }
+}
+
+resource "aws_vpn_connection_route" "route_to_azure" {
+  vpn_connection_id      = aws_vpn_connection.azure_vpn.id
+  destination_cidr_block = "192.168.1.0/24"
+}
+
+resource "aws_route" "web_to_azure" {
+  route_table_id         = aws_route_table.three_tier_rt.id
+  destination_cidr_block = "192.168.1.0/24"
+  gateway_id             = aws_vpn_gateway.vpn_gw.id
+}
